@@ -4,6 +4,7 @@ ARG BNC_VERSION=2.13.5.2
 ARG BNC_DIST=debian13
 ARG BNC_BINARY=bnc-${BNC_VERSION}-${BNC_DIST}
 ARG BNC_URL=https://igs.bkg.bund.de/root_ftp/NTRIP/software/BNC/${BNC_BINARY}
+ARG BNC_EMPTY_CONF=https://software.rtcm-ntrip.org/export/HEAD/ntrip/trunk/BNC/Example_Configs/22_Empty.bnc
 
 # Runtime dependencies for BNC
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -16,7 +17,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN mkdir -p /opt/bnc && cd /opt/bnc \
  && wget -q "${BNC_URL}" -O BNC \
  && chmod +x BNC \
- && ln -s /opt/bnc/BNC /usr/local/bin/BNC
+ && ln -s /opt/bnc/BNC /usr/local/bin/BNC \
+ && wget -q -O /opt/bnc/bnc.conf.default "${BNC_EMPTY_CONF}"
 
 # BNC-required directories
 RUN mkdir -p /srv/bnc/conf /srv/bnc/logs /srv/bnc/rnx
