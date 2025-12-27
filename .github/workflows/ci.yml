@@ -1,0 +1,39 @@
+name: CI
+
+on:
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Docker image (default args)
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: false
+          tags: bkg-ntrip-client-image:test
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build Docker image (custom args)
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: false
+          tags: bkg-ntrip-client-image:test-custom
+          build-args: |
+            JAVA_BASE_IMAGE=eclipse-temurin:8-jre-alpine
+            SWARM_VERSION=3.5.0
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
