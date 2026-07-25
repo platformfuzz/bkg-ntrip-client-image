@@ -13,14 +13,5 @@ permissions:
 
 jobs:
   auto-merge:
-    runs-on: ubuntu-latest
-    if: github.actor == 'dependabot[bot]'
-    steps:
-      - name: Enable auto-merge for Dependabot PRs
-        uses: fastify/github-action-merge-dependabot@1b2ed42db8f9d81a46bac83adedfc03eb5149dff # v3.11.2
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          target: main
-          merge-method: squash
-          use-github-auto-merge: true
-          skip-verification: false
+    uses: actionsforge/actions/.github/workflows/dependabot-auto-merge.yml@main
+    secrets: inherit
