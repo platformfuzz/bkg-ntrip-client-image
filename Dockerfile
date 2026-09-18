@@ -1,24 +1,32 @@
 FROM debian:13-slim
 
-ARG BNC_VERSION=2.13.5.2
+# BKG now ships Linux builds as zip archives (raw binary URLs 404).
+ARG BNC_VERSION=2.13.7
 ARG BNC_DIST=debian13
-ARG BNC_BINARY=bnc-${BNC_VERSION}-${BNC_DIST}
-ARG BNC_URL=https://igs.bkg.bund.de/root_ftp/NTRIP/software/BNC/${BNC_BINARY}
+ARG BNC_ARCHIVE=bnc-${BNC_VERSION}-${BNC_DIST}.zip
+ARG BNC_URL=https://igs.bkg.bund.de/root_ftp/NTRIP/software/BNC/${BNC_ARCHIVE}
+ARG BNC_SHA256=910d61ef744ba59920149cad410ac6ec859808bf5db6830a04c5852b577b53f2
 ARG BNC_EMPTY_CONF=https://software.rtcm-ntrip.org/export/HEAD/ntrip/trunk/BNC/Example_Configs/22_Empty.bnc
 
 # Runtime dependencies for BNC
 RUN apt-get update && apt-get install -y --no-install-recommends \
-      ca-certificates wget \
+      ca-certificates wget unzip \
       libqt5gui5 libqt5widgets5 libqt5network5 libqt5svg5 \
       libqt5printsupport5 libqt5core5a libgl1 \
  && rm -rf /var/lib/apt/lists/*
 
-# Install BNC binary
-RUN mkdir -p /opt/bnc && cd /opt/bnc \
- && wget -q "${BNC_URL}" -O BNC \
- && chmod +x BNC \
+# Install BNC binary from official zip
+RUN mkdir -p /opt/bnc /tmp/bnc-extract && cd /tmp \
+ && wget -q "${BNC_URL}" -O "${BNC_ARCHIVE}" \
+ && echo "${BNC_SHA256}  ${BNC_ARCHIVE}" | sha256sum -c - \
+ && unzip -q "${BNC_ARCHIVE}" -d /tmp/bnc-extract \
+ && BIN="$(find /tmp/bnc-extract -type f \( -name 'BNC' -o -name 'bnc' \) | head -n 1)" \
+ && test -n "${BIN}" \
+ && mv "${BIN}" /opt/bnc/BNC \
+ && chmod +x /opt/bnc/BNC \
  && ln -s /opt/bnc/BNC /usr/local/bin/BNC \
- && wget -q -O /opt/bnc/bnc.conf.default "${BNC_EMPTY_CONF}"
+ && wget -q -O /opt/bnc/bnc.conf.default "${BNC_EMPTY_CONF}" \
+ && rm -rf /tmp/bnc-extract "/tmp/${BNC_ARCHIVE}"
 
 # BNC-required directories
 RUN mkdir -p /srv/bnc/conf /srv/bnc/logs /srv/bnc/rnx
