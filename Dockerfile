@@ -15,17 +15,17 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
       libqt5printsupport5 libqt5core5a libgl1 \
  && rm -rf /var/lib/apt/lists/*
 
-# Install BNC binary from official zip
+# Install BNC binary from official zip (binary is named bnc-<version>).
 RUN mkdir -p /opt/bnc /tmp/bnc-extract && cd /tmp \
  && wget -q "${BNC_URL}" -O "${BNC_ARCHIVE}" \
  && echo "${BNC_SHA256}  ${BNC_ARCHIVE}" | sha256sum -c - \
  && unzip -q "${BNC_ARCHIVE}" -d /tmp/bnc-extract \
- && BIN="$(find /tmp/bnc-extract -type f \( -name 'BNC' -o -name 'bnc' \) | head -n 1)" \
+ && BIN="$(find /tmp/bnc-extract -maxdepth 1 -type f -name 'bnc-*' | head -n 1)" \
  && test -n "${BIN}" \
  && mv "${BIN}" /opt/bnc/BNC \
  && chmod +x /opt/bnc/BNC \
  && ln -s /opt/bnc/BNC /usr/local/bin/BNC \
- && wget -q -O /opt/bnc/bnc.conf.default "${BNC_EMPTY_CONF}" \
+ && cp /tmp/bnc-extract/Example_Configs/22_Empty.bnc /opt/bnc/bnc.conf.default \
  && rm -rf /tmp/bnc-extract "/tmp/${BNC_ARCHIVE}"
 
 # BNC-required directories
